@@ -1,17 +1,3 @@
-# Copyright (c) [2012]-[2021] Shanghai Yitu Technology Co., Ltd.
-#
-# This source code is licensed under the Clear BSD License
-# LICENSE file in the root directory of this file
-# All rights reserved.
-
-'''
-- resize_pos_embed: resize position embedding
-- load_for_transfer_learning: load pretrained paramters to model in transfer learning
-- get_mean_and_std: calculate the mean and std value of dataset.
-- msr_init: net parameter initialization.
-- progress_bar: progress bar mimic xlua.progress.
-'''
-
 import os
 import sys
 import time
