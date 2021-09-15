@@ -31,7 +31,7 @@ A summary of the results are shown below for quick reference. Details can be fou
 | Refiner-ViT-M                  |  12   | 32   | 420   |    384         | 55M   | 85.6  |
 | Refiner-ViT-L                  |  16   | 32   | 512   |    224         | 81M   | 84.9  |
 | Refiner-ViT-L                  |  16   | 32   | 512   |    384         | 81M   | 85.8  |
-| Refiner-ViT-L                  |  16   | 32   | 512   |    448         | 81M   | 86.0[https://drive.google.com/file/d/12v1WbxG6_mZQ0FYnXIhKiqbtg5bI4pGL/view?usp=sharing]  |
+| Refiner-ViT-L                  |  16   | 32   | 512   |    448         | 81M   | [86.0](https://drive.google.com/file/d/12v1WbxG6_mZQ0FYnXIhKiqbtg5bI4pGL/view?usp=sharing)  |
 
 #### Training
 
