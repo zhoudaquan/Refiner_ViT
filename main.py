@@ -75,6 +75,8 @@ parser.add_argument('--model', default='resnet101', type=str, metavar='MODEL',
                     help='Name of model to train (default: "countception"')
 parser.add_argument('--pretrained', action='store_true', default=False,
                     help='Start with pretrained version of specified network (if avail)')
+parser.add_argument('--eval_first', action='store_true', default=False,
+                    help='evaluate the model before training')
 parser.add_argument('--initial-checkpoint', default='', type=str, metavar='PATH',
                     help='Initialize model from this checkpoint (default: none)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
@@ -586,6 +588,7 @@ def main():
     else:
         train_loss_fn = nn.CrossEntropyLoss().cuda()
     validate_loss_fn = nn.CrossEntropyLoss().cuda()
+    # import pdb; pdb.set_trace()
 
     # setup checkpoint saver and eval metric tracking
     eval_metric = args.eval_metric
@@ -617,6 +620,8 @@ def main():
                 currtent_lr = sum(lrl) / len(lrl)
                 train_loss_fn.dense_weight = args.dense_weight*currtent_lr/args.lr
 
+            if args.eval_first:
+                validate(model, loader_eval, validate_loss_fn, args, amp_autocast=amp_autocast)
             train_metrics = train_one_epoch(
                 epoch, model, loader_train, optimizer, train_loss_fn, args,
                 lr_scheduler=lr_scheduler, saver=saver, output_dir=output_dir,

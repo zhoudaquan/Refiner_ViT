@@ -2,7 +2,7 @@ aa: rand-m9-mstd0.5-inc1
 amp: true
 apex_amp: false
 aug_splits: 0
-batch_size: 2
+batch_size: 12
 bn_eps: null
 bn_momentum: null
 bn_tf: false
@@ -10,11 +10,11 @@ channels_last: false
 clip_grad: null
 color_jitter: 0.4
 cooldown_epochs: 10
-cos_reg_component: 12
+cos_reg_component: 0
 crop_pct: null
 cutmix: 1.0
 cutmix_minmax: null
-data: /PATH/TO/DATASET
+data: ../imagenet_raw
 decay_epochs: 30
 decay_rate: 0.1
 dist_bn: ''
@@ -26,7 +26,7 @@ epochs: 300
 eval_metric: top1
 gp: null
 hflip: 0.5
-img_size: 224
+img_size: 448
 initial_checkpoint: ''
 interpolation: ''
 jsd: false
@@ -70,7 +70,7 @@ recovery_interval: 0
 remode: pixel
 reprob: 0.25
 resplit: false
-resume: 
+resume: ../checkpoint_backup/refiner_l_448.pth.tar
 save_images: false
 scale:
 - 0.08
@@ -94,9 +94,10 @@ warmup_epochs: 5
 warmup_lr: 1.0e-06
 weight_decay: 0.05
 workers: 8
-relabel: false
-return_dense: false
+relabel: true
+return_dense: true
 mix_token: false
-relabel_size: 14
+relabel_size: 24
 dense_weight: 0.5
 relabel_data: null
+eval_first: true

@@ -16,6 +16,7 @@ from .refiner_utils import DLA, ClassBlock
 from torch.nn import functional as F
 
 import numpy as np
+import math
 
 
 def _cfg(url='', **kwargs):
@@ -67,12 +68,17 @@ def rand_bbox(size, lam):
     return bbx1, bby1, bbx2, bby2
 
 class Mlp(nn.Module):
-    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
+    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0., use_nes=False, expansion_ratio=3):
         super().__init__()
         out_features = out_features or in_features
         hidden_features = hidden_features or in_features
-        self.fc1 = nn.Linear(in_features, hidden_features)
-        self.fc2 = nn.Linear(hidden_features, out_features)
+        self.scale_channel = nn.Parameter(1e-5*torch.ones(in_features))
+        if use_nes:
+            self.fc1 = WSLinear_fast(in_features, hidden_features, multiplier1=2, multiplier2=2)
+            self.fc2 = WSLinear_fast(hidden_features, out_features, multiplier1=2, multiplier2 = 2)
+        else:
+            self.fc1 = nn.Linear(in_features, hidden_features)
+            self.fc2 = nn.Linear(hidden_features, out_features)
         self.act = act_layer()
         self.drop = nn.Dropout(drop)
 
@@ -81,8 +87,27 @@ class Mlp(nn.Module):
         x = self.act(x)
         x = self.drop(x)
         x = self.fc2(x)
+        # x: (B,N,C)
+        x = self.scale_channel.unsqueeze(0).unsqueeze(0)*x
         x = self.drop(x)
         return x
+# class Mlp(nn.Module):
+#     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
+#         super().__init__()
+#         out_features = out_features or in_features
+#         hidden_features = hidden_features or in_features
+#         self.fc1 = nn.Linear(in_features, hidden_features)
+#         self.fc2 = nn.Linear(hidden_features, out_features)
+#         self.act = act_layer()
+#         self.drop = nn.Dropout(drop)
+# 
+#     def forward(self, x):
+#         x = self.fc1(x)
+#         x = self.act(x)
+#         x = self.drop(x)
+#         x = self.fc2(x)
+#         x = self.drop(x)
+#         return x
 
 class Refined_Attention(nn.Module):
     def __init__(self, dim, num_heads=8, qkv_bias=False, qk_scale=None, attn_drop=0., proj_drop=0.,expansion_ratio = 3, 
@@ -127,7 +152,9 @@ class Refined_Attention(nn.Module):
             qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
             q, k, v = qkv[0], qkv[1], qkv[2]   
 
-            attn = (q @ k.transpose(-2, -1)) * self.scale
+            q = math.sqrt(self.scale)*q
+            k = math.sqrt(self.scale)*k
+            attn = (q @ k.transpose(-2, -1)) # * self.scale
             attn = attn.softmax(dim=-1) + atten * self.scale if atten is not None else attn.softmax(dim=-1)
             attn = self.attn_drop(attn)
             if self.apply_transform:
@@ -405,7 +432,7 @@ class Refiner_ViT(nn.Module):
             x, attn = blk(x, attn)
             if self.cos_reg:
                 atten_list.append(attn)
-        x = self.forward_cls(x)
+        # x = self.forward_cls(x)
         x = self.norm(x)
         if self.cos_reg and self.training:
             return x, (bbx1, bby1, bbx2, bby2), patch_h, patch_w, atten_list
@@ -428,6 +455,7 @@ class Refiner_ViT(nn.Module):
                     x_aux = temp_x
 
                     x_aux = x_aux.reshape(x_aux.shape[0],patch_h*patch_w,x_aux.shape[-1])
+                # import pdb; pdb.set_trace()
                 return (x_cls, x_aux, (bbx1, bby1, bbx2, bby2)), atten
             return x_cls, atten
         else:
